@@ -68,3 +68,15 @@ class TestTriggerDataModel:
 
     def test_from_non_built_to_non_built_is_idempotent(self) -> None:
         assert Trigger.from_non_built(FILE_NAME, NON_BUILT_TRIGGER).to_non_built() == NON_BUILT_TRIGGER
+
+    def test_from_built_all_trigger_with_null_field_name(self) -> None:
+        condition = {"FieldName": None, "Value": None, "MatchType": 0, "CustomOperatorName": None}
+        built = {**BUILT_TRIGGER, "Type": 8, "Conditions": [condition]}
+        trigger = Trigger.from_built(FILE_NAME, built)
+        assert trigger.conditions[0].field_name == ""
+
+    def test_from_built_non_all_trigger_with_null_field_name_raises_error(self) -> None:
+        condition = {"FieldName": None, "Value": None, "MatchType": 0, "CustomOperatorName": None}
+        built = {**BUILT_TRIGGER, "Conditions": [condition]}
+        with pytest.raises(ValueError):  # ruff:ignore[pytest-raises-too-broad]
+            Trigger.from_built(FILE_NAME, built)

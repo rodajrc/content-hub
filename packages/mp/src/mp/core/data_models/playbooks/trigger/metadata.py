@@ -118,15 +118,21 @@ class Trigger(SingularComponentMetadata[BuiltTrigger, NonBuiltTrigger]):
 
     @classmethod
     def _from_built(cls, file_name: str, built: BuiltTrigger) -> Self:  # ruff:ignore[unused-class-method-argument]
+        type_: TriggerType = TriggerType(built["Type"])
+        conditions: list[BuiltCondition] = built["Conditions"]
+
+        if type_ is TriggerType.ALL:
+            conditions = [{**c, "FieldName": ""} if c.get("FieldName") is None else c for c in conditions]
+
         return cls(
             playbook_id=built["DefinitionIdentifier"],
-            conditions=[Condition.from_built(c) for c in built["Conditions"]],
+            conditions=[Condition.from_built(c) for c in conditions],
             logical_operator=LogicalOperator(built["LogicalOperator"]),
             environments=built["Environments"],
             playbook_name=built.get("WorkflowName"),
             identifier=built["Identifier"],
             is_enabled=built["IsEnabled"],
-            type_=TriggerType(built["Type"]),
+            type_=type_,
         )
 
     @classmethod
